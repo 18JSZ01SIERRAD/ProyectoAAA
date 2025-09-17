@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,32 @@ namespace AAA
         {
             InitializeComponent();
             registros();
+            chequeo();
+        }
+        private void limpiar()
+        {
+            textBox1.Text = (null);
+            textBox2.Text = (null);
+            textBox3.Text = (null);
+            textBox4.Text = (null);
+            textBox5.Text = (null);
+            textBox6.Text = (null);
+            textBox7.Text = (null);
+            textBox8.Text = (null);
+            textBox9.Text = (null);
+            textBox16.Text = (null);
+            textBox17.Text = (null);
+            textBox18.Text = (null);
+            checkBox1.Checked = false;
+            checkBox2.Checked = false;
+            checkBox3.Checked = false;
+            checkBox4.Checked = false;
+            checkBox5.Checked = false;
+            checkBox6.Checked = false;
+        }
+        private void chequeo()
+        {
+            DataGridViewCheckBoxColumn chk = new DataGridViewCheckBoxColumn();
         }
         private void registros()
         {
@@ -29,6 +56,32 @@ namespace AAA
                 DataSet d = new DataSet();
                 comando.Fill(d, "nombre");
                 dataGridView1.DataSource = d.Tables["nombre"].DefaultView;
+                string[] columnasCheck = { "agendar", "ecg", "eco", "tt", "fetal", "holter" };
+
+                foreach (string col in columnasCheck)
+                {
+                    // Evitar duplicados
+                    if (dataGridView1.Columns[col + "Chk"] == null)
+                    {
+                        DataGridViewCheckBoxColumn chk = new DataGridViewCheckBoxColumn();
+                        chk.HeaderText = col.ToUpper();   // el título en mayúsculas
+                        chk.Name = col + "Chk";           // nombre único
+                        chk.DataPropertyName = col;       // lo enlaza con la BD
+                        chk.TrueValue = 1;
+                        chk.FalseValue = 0;
+
+                        // Eliminar la columna original (int/bit)
+                        if (dataGridView1.Columns.Contains(col))
+                            dataGridView1.Columns.Remove(col);
+
+                        // Agregar el checkbox
+                        dataGridView1.Columns.Add(chk);
+
+                        // Aquí decides el orden (por ejemplo, después de la columna "motivo")
+                        chk.DisplayIndex = dataGridView1.Columns["diagnostico"].Index + 1;
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -39,6 +92,7 @@ namespace AAA
                 conexion.Close();
             }
         }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -63,9 +117,9 @@ namespace AAA
             try
             {
                 conexion.Open();
-                SqlCommand comando = new SqlCommand("INSERT INTO campos2(fecha, codigofac, nombreyapellido, edad, eg, referencia, telefonos, motivo, diagnostico, agendar, ecg, eco, tt, fetal, holter, consulta, medico) VALUES(@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)", conexion);
+                SqlCommand comando = new SqlCommand("INSERT INTO campos2(Fecha, CodigoFac, Nombre_y_Apellido, Edad, EG, Referencia, Telefonos, Motivo, Diagnostico, Agendar, ECG, ECO, TT, Fetal, Holter, Consulta, Medico) VALUES(@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)", conexion);
                 comando.Parameters.AddWithValue("@1", dateTimePicker1.Value.Date);
-                comando.Parameters.AddWithValue("@2", Convert.ToInt32(textBox2.Text));
+                comando.Parameters.AddWithValue("@2", textBox2.Text);
                 comando.Parameters.AddWithValue("@3", textBox3.Text);
                 comando.Parameters.AddWithValue("@4", textBox4.Text);
                 comando.Parameters.AddWithValue("@5", textBox5.Text);
@@ -73,12 +127,12 @@ namespace AAA
                 comando.Parameters.AddWithValue("@7", Convert.ToInt32(textBox7.Text));
                 comando.Parameters.AddWithValue("@8", textBox8.Text);
                 comando.Parameters.AddWithValue("@9", textBox9.Text);
-                comando.Parameters.AddWithValue("@10", Convert.ToInt32(textBox10.Text));
-                comando.Parameters.AddWithValue("@11", Convert.ToInt32(textBox11.Text));
-                comando.Parameters.AddWithValue("@12", Convert.ToInt32(textBox12.Text));
-                comando.Parameters.AddWithValue("@13", Convert.ToInt32(textBox13.Text));
-                comando.Parameters.AddWithValue("@14", Convert.ToInt32(textBox14.Text));
-                comando.Parameters.AddWithValue("@15", Convert.ToInt32(textBox15.Text));
+                comando.Parameters.AddWithValue("@10",Convert.ToBoolean(checkBox1.Checked));
+                comando.Parameters.AddWithValue("@11",Convert.ToBoolean(checkBox2.Checked));
+                comando.Parameters.AddWithValue("@12",Convert.ToBoolean(checkBox3.Checked));
+                comando.Parameters.AddWithValue("@13",Convert.ToBoolean(checkBox4.Checked));
+                comando.Parameters.AddWithValue("@14",Convert.ToBoolean(checkBox5.Checked));
+                comando.Parameters.AddWithValue("@15",Convert.ToBoolean(checkBox6.Checked));
                 comando.Parameters.AddWithValue("@16", textBox16.Text);
                 comando.Parameters.AddWithValue("@17", textBox17.Text);
                 comando.ExecuteNonQuery();
@@ -92,6 +146,8 @@ namespace AAA
             {
                 conexion.Close();
                 registros();
+                limpiar();
+
             }
         }
 
@@ -107,14 +163,15 @@ namespace AAA
             textBox7.Text = dataGridView1.Rows[e.RowIndex].Cells[7].Value.ToString();
             textBox8.Text = dataGridView1.Rows[e.RowIndex].Cells[8].Value.ToString();
             textBox9.Text = dataGridView1.Rows[e.RowIndex].Cells[9].Value.ToString();
-            textBox10.Text = dataGridView1.Rows[e.RowIndex].Cells[10].Value.ToString();
-            textBox11.Text = dataGridView1.Rows[e.RowIndex].Cells[11].Value.ToString();
-            textBox12.Text = dataGridView1.Rows[e.RowIndex].Cells[12].Value.ToString();
-            textBox13.Text = dataGridView1.Rows[e.RowIndex].Cells[13].Value.ToString();
-            textBox14.Text = dataGridView1.Rows[e.RowIndex].Cells[14].Value.ToString();
-            textBox15.Text = dataGridView1.Rows[e.RowIndex].Cells[15].Value.ToString();
+            checkBox1.Checked = Convert.ToBoolean(dataGridView1.Rows[e.RowIndex].Cells[10].Value);
+            checkBox2.Checked = Convert.ToBoolean(dataGridView1.Rows[e.RowIndex].Cells[11].Value);
+            checkBox3.Checked = Convert.ToBoolean(dataGridView1.Rows[e.RowIndex].Cells[12].Value);
+            checkBox4.Checked = Convert.ToBoolean(dataGridView1.Rows[e.RowIndex].Cells[13].Value);
+            checkBox5.Checked = Convert.ToBoolean(dataGridView1.Rows[e.RowIndex].Cells[14].Value);
+            checkBox6.Checked = Convert.ToBoolean(dataGridView1.Rows[e.RowIndex].Cells[15].Value);
             textBox16.Text = dataGridView1.Rows[e.RowIndex].Cells[16].Value.ToString();
             textBox17.Text = dataGridView1.Rows[e.RowIndex].Cells[17].Value.ToString();
+
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -122,10 +179,10 @@ namespace AAA
             try
             {
                 conexion.Open();
-                SqlCommand comando = new SqlCommand("update campos2 set fecha=@1, codigofac=@2, nombreyapellido=@3, edad=@4, eg=@5, referencia=@6, telefonos=@7, motivo=@8, diagnostico=@9, agendar=@10, ecg=@11, eco=@12, tt=@13, fetal=@14, holter=@15, consulta=@16, medico=@17 where id=@id", conexion);
+                SqlCommand comando = new SqlCommand("update campos2 set Fecha=@1, CodigoFac=@2, Nombre_y_Apellido=@3, Edad=@4, EG=@5, Referencia=@6, Telefonos=@7, Motivo=@8, Diagnostico=@9, Agendar=@10, ECG=@11, ECO=@12, TT=@13, Fetal=@14, Holter=@15, Consulta=@16, Medico=@17 where id=@id", conexion);
                 comando.Parameters.AddWithValue("@id", textBox1.Text);
                 comando.Parameters.AddWithValue("@1", dateTimePicker1.Value.Date);
-                comando.Parameters.AddWithValue("@2", Convert.ToInt32(textBox2.Text));
+                comando.Parameters.AddWithValue("@2", textBox2.Text);
                 comando.Parameters.AddWithValue("@3", textBox3.Text);
                 comando.Parameters.AddWithValue("@4", textBox4.Text);
                 comando.Parameters.AddWithValue("@5", textBox5.Text);
@@ -133,12 +190,12 @@ namespace AAA
                 comando.Parameters.AddWithValue("@7", Convert.ToInt32(textBox7.Text));
                 comando.Parameters.AddWithValue("@8", textBox8.Text);
                 comando.Parameters.AddWithValue("@9", textBox9.Text);
-                comando.Parameters.AddWithValue("@10", Convert.ToInt32(textBox10.Text));
-                comando.Parameters.AddWithValue("@11", Convert.ToInt32(textBox11.Text));
-                comando.Parameters.AddWithValue("@12", Convert.ToInt32(textBox12.Text));
-                comando.Parameters.AddWithValue("@13", Convert.ToInt32(textBox13.Text));
-                comando.Parameters.AddWithValue("@14", Convert.ToInt32(textBox14.Text));
-                comando.Parameters.AddWithValue("@15", Convert.ToInt32(textBox15.Text));
+                comando.Parameters.AddWithValue("@10", Convert.ToBoolean(checkBox1.Checked));
+                comando.Parameters.AddWithValue("@11", Convert.ToBoolean(checkBox2.Checked));
+                comando.Parameters.AddWithValue("@12", Convert.ToBoolean(checkBox3.Checked));
+                comando.Parameters.AddWithValue("@13", Convert.ToBoolean(checkBox4.Checked));
+                comando.Parameters.AddWithValue("@14", Convert.ToBoolean(checkBox5.Checked));
+                comando.Parameters.AddWithValue("@15", Convert.ToBoolean(checkBox6.Checked));
                 comando.Parameters.AddWithValue("@16", textBox16.Text);
                 comando.Parameters.AddWithValue("@17", textBox17.Text);
                 comando.ExecuteNonQuery();
@@ -152,6 +209,7 @@ namespace AAA
             {
                 conexion.Close();
                 registros();
+                limpiar();
             }
         }
 
@@ -173,6 +231,7 @@ namespace AAA
             {
                 conexion.Close();
                 registros();
+                limpiar();
             }
         }
 
@@ -306,6 +365,16 @@ namespace AAA
                 textBox7.Text = "";
                 textBox7.Focus();
             }
+        }
+
+        private void textBox7_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox5_Leave(object sender, EventArgs e)
+        {
+        
         }
     }
 }
