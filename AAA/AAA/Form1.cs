@@ -19,6 +19,7 @@ namespace AAA
         {
             InitializeComponent();
             registros();
+            comboBox3.Visible = false;
         }
         private void registros()
         {
